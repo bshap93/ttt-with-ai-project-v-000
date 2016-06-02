@@ -1,4 +1,4 @@
-
+require './config/environment.rb'
 class Computer < Player
 
 
