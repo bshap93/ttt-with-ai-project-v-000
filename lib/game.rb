@@ -1,7 +1,7 @@
 require './config/environment.rb'
 require 'pry'
 class Game
-  attr_accessor :board, :player_1, :player_2
+  attr_accessor :board, :player_1, :player_2, :winner
   WIN_COMBINATIONS = [[0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8], [6,4,2]]
 
   def initialize(player_1=Player::Human.new("X"), player_2=Player::Human.new("O"), board=Board.new)
@@ -22,10 +22,13 @@ class Game
       position_2 = self.board.cells[win_index_2]
       position_3 = self.board.cells[win_index_3]
    
-      if (position_1 == "X" && position_2 == "X" && position_3 == "X") || (position_1 == "O" && position_2 == "O" && position_3 == "O")
-        true
+      if (position_1 == "X" && position_2 == "X" && position_3 == "X") && player == (self.player_1 || nil)
+        @winner = @player_1
+      elsif (position_1 == "O" && position_2 == "O" && position_3 == "O") && player == (self.player_2 || nil)
+        @winner = @player_2
       end
     end
+    @winner
   end
 
   def full?
@@ -37,7 +40,7 @@ class Game
   end
 
   def draw?
-    if !won? && full?
+    if !(won?(self.player_1) || won?(self.player_2)) && full?
       true
     else
       false
@@ -45,7 +48,7 @@ class Game
   end
 
   def over?
-    if won? || draw? || full?
+    if (won?(self.player_1) || won?(self.player_2)) || draw? || full?
       true
     else 
       false
@@ -53,9 +56,7 @@ class Game
   end
 
   def winner
-    if the_winner_combo = won?
-      self.board.cells[the_winner_combo.first]
-    end
+    (won?(self.player_1) || won?(self.player_2))
   end
 
   def turn
@@ -80,11 +81,11 @@ class Game
   end
 
 
-  def score(depth=0)
-    if self.won?(@player_1)
-      return 10 - depth
-    elsif self.won?(@player_2)
-      return depth - 10
+  def score
+    if self.won?(self.player_1)
+      return 10
+    elsif self.won?(self.player_2)
+      return 10
     else
       return 0
     end
@@ -94,19 +95,17 @@ class Game
     (0..8).select { |i| self.board.cells[i] == " "}.collect{|i| (i + 1).to_s}
   end
   
-  def minimax(depth=0)
-    return score(self) if self.over?
-    depth += 1
+  def minimax
+    return score if self.over?
     scores = [] # an array of scores
     moves = []  # an array of moves
 
     # Populate the scores array, recursing as needed
     self.get_available_moves.each do |position|
-      binding.pry
       possible_game = self.dup
       possible_move = possible_game.board.update(position, self.player_1)
       scores << possible_game.minimax
-      moves << move
+      moves << position
     end
 
     # Do the min or the max calculation
@@ -123,5 +122,25 @@ class Game
     end
   end
 
+  def evaluate_state
+    if self.won?(piece)
+      @base_score
+    elsif game_state.lost?(piece)
+      depth - @base_score
+    else
+      0
+    end
+  end
+
+  def best_possible_move
+    @base_score = self.get_available_moves.count + 1
+    bound = @base_score + 1
+    minmax
+  end
+
+
 
 end
+game = Game.new
+game.board.cells = [' ', 'O', ' ', ' ', ' ', 'O', 'X', 'X', 'O']
+binding.pry
