@@ -12,7 +12,7 @@ class Game
     self.board.turn_count % 2 == 0 ? player_1 : player_2
   end
 
-  def won?
+  def won?(player)
     WIN_COMBINATIONS.detect do |win_combination|
       win_index_1 = win_combination[0]
       win_index_2 = win_combination[1]
