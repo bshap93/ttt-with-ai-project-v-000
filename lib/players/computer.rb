@@ -1,10 +1,11 @@
+
 class Computer < Player
+
 
   def move(board)
     valid = false
     until valid != false
-      binding.pry
-      position = $game.choice
+      position = NewGame.new_game.choice
       valid = board.valid_move?(position)
     end
     position.to_s
