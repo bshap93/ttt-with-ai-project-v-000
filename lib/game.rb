@@ -1,7 +1,7 @@
 require './config/environment.rb'
 require 'pry'
 class Game
-  attr_accessor :board, :player_1, :player_2, :winner
+  attr_accessor :board, :player_1, :player_2, :winner, :choice
   WIN_COMBINATIONS = [[0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8], [6,4,2]]
 
   def initialize(player_1=Player::Human.new("X"), player_2=Player::Human.new("O"), board=Board.new)
@@ -71,9 +71,10 @@ class Game
 
   def play
     until over?
+      self.board.display
       turn
     end
-    if won?
+    if won?(player)
       puts "Congratulations #{winner}!"
     elsif draw?
       puts "Cats Game!"
@@ -122,25 +123,4 @@ class Game
     end
   end
 
-  def evaluate_state
-    if self.won?(piece)
-      @base_score
-    elsif game_state.lost?(piece)
-      depth - @base_score
-    else
-      0
-    end
-  end
-
-  def best_possible_move
-    @base_score = self.get_available_moves.count + 1
-    bound = @base_score + 1
-    minmax
-  end
-
-
-
 end
-game = Game.new
-game.board.cells = [' ', 'O', ' ', ' ', ' ', 'O', 'X', 'X', 'O']
-binding.pry
